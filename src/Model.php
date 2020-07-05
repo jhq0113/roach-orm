@@ -111,7 +111,7 @@ class Model extends Roach
     public static function count($where, $useMaster = false)
     {
         $params = [];
-        $sql    = call_user_func(static::$builderClass.'::count', static::$tableName, $where, $params);
+        $sql    = call_user_func_array(static::$builderClass.'::count', [static::$tableName, $where, $params ]);
         $rows = static::getDb()->queryAll($sql, $params, $useMaster);
         if(isset($rows[0]['count'])) {
             return (int)$rows[0]['count'];
@@ -131,7 +131,7 @@ class Model extends Roach
     public static function insert($row, $ignore = false)
     {
         $params = [];
-        $sql = call_user_func(static::$builderClass.'::multiInsert', static::$tableName, [ $row ], $params, $ignore);
+        $sql = call_user_func_array(static::$builderClass.'::multiInsert', [static::$tableName, [ $row ], $params, $ignore]);
         return static::getDb()->execute($sql, $params);
     }
 
@@ -147,7 +147,7 @@ class Model extends Roach
     public static function batchInsert($rows, $ignore = false)
     {
         $params = [];
-        $sql = call_user_func(static::$builderClass.'::multiInsert', static::$tableName, $rows, $params, $ignore);
+        $sql = call_user_func_array(static::$builderClass.'::multiInsert', [static::$tableName, $rows, $params, $ignore]);
         return static::getDb()->execute($sql, $params);
     }
 
@@ -163,7 +163,7 @@ class Model extends Roach
     public static function updateAll($set, $where)
     {
         $params = [];
-        $sql = call_user_func(static::$builderClass.'::updateAll', static::$tableName, $set, $where, $params);
+        $sql = call_user_func_array(static::$builderClass.'::updateAll', [static::$tableName, $set, $where, $params ]);
         return static::getDb()->execute($sql, $params);
     }
 
@@ -178,7 +178,7 @@ class Model extends Roach
     public static function deleteAll($where)
     {
         $params = [];
-        $sql = call_user_func(static::$builderClass.'::deleteAll', static::$tableName, $where, $params);
+        $sql = call_user_func_array(static::$builderClass.'::deleteAll', [static::$tableName, $where, $params]);
         return static::getDb()->execute($sql, $params);
     }
 
