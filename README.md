@@ -107,7 +107,9 @@ class UserModel extends \roach\orm\Model
 }
 ```
 
-* insert数据
+* A.insert数据
+
+> 插入单条数据
 
 ```php
 <?php
@@ -117,7 +119,7 @@ class UserModel extends \roach\orm\Model
 $rows = UserModel::insert([
     'user_name'   => 'zhou boss',
     'true_name'   => '周**',
-    'password'    => hash_hmac('md5', 'roach', 'sdfs#$#@3fd'),
+    'password'    => hash_hmac('md5', 'Mr.zhou', 'sdfs#$#@3fd'),
     'update_time' => time()
 ]);
 
@@ -128,4 +130,111 @@ if($rows < 1) {
 //如果想获取刚刚插入数据的`id`,通过如下方式
 $newUserId = UserModel::getDb()->lastInsertId();
 exit('插入成功，用户id为'.$newUserId.PHP_EOL);
+```
+
+> 插入多条数据
+
+```php
+<?php
+/**
+ * 此处返回受影响行数 
+ */
+$rows = UserModel::insert([
+    [
+        'user_name'   => 'zhao boss',
+        'true_name'   => '赵**',
+        'password'    => hash_hmac('md5', 'Mr.zhao', 'sdfs#$#@3fd'),
+        'update_time' => time()
+    ],
+    [
+        'user_name'   => 'li boss',
+        'true_name'   => '李**',
+        'password'    => hash_hmac('md5', 'Mr.li', 'sdfs#$#@3fd'),
+        'update_time' => time()
+    ],
+]);
+
+var_dump($rows);
+```
+
+* B.使用`where`
+
+> `where`条件可以是数组，也可以是字符串，当`where`条件为数组时，多个条件之间是`AND`关系，`all`、`one`、`updateAll`和`deleteAll`等方法中的`where`条件的表达式解析是一致的
+
+> 相等查询
+
+```php
+<?php
+//SELECT * FROM `user` WHERE `id`=1 LIMIT 1
+$query = UserModel::find()
+    ->where([
+        'id' => 1,
+    ]);
+
+$user = UserModel::one($query);
+```
+
+> IN查询
+
+```php
+<?php
+//SELECT * FROM `user` WHERE `id` IN(1,2,3) LIMIT 1000
+$query = UserModel::find()
+            ->where([
+               'id' => [1, 2, 3] 
+            ]);
+
+$userList = UserModel::all($query);
+```
+
+> BETWEEN查询
+
+```php
+<?php
+//SELECT * FROM `user` WHERE `id` IN(1,2,3) LIMIT 1000
+$query = UserModel::find()
+            ->where([
+               'id BETWEEN' => [1, 3] 
+            ]);
+
+$userList = UserModel::all($query);
+```
+
+> 范围查询(`>`, `>=`, `<`, `<=`, `><`, `!=`)
+
+```php
+<?php
+//SELECT * FROM `user` WHERE `id` IN(1,2,3) LIMIT 1000
+$query = UserModel::find()
+            ->where([
+               'id <' => 3
+            ]);
+
+$userList = UserModel::all($query);
+```
+
+> LIKE查询
+
+```php
+<?php
+$query = UserModel::find()
+            ->where([
+               'true_name LIKE' => '周%'
+            ]);
+
+$userList = UserModel::all($query);
+```
+
+> 多条件查询
+
+```php
+<?php
+//SELECT * FROM `user` WHERE `id`=1 AND `is_on`=1
+$query = UserModel::find()
+    ->where([
+        'id'    => 1,
+        'is_on' => 1
+    ]);
+
+$user = UserModel::one($query);
 ```
