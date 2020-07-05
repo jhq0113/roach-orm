@@ -301,6 +301,39 @@ $rows = UserModel::updateAll(['true_name' => 'sun boss'], ['id' => 1]);
 $rows = UserModel::deleteAll(['id' => 4]);
 ```
 
+* 使用事务
+
+```php
+<?php
+$success = UserModel::getDb()->transaction(function (\roach\orm\Connection $connection){
+    $query = UserModel::find()
+                ->where([
+                    'id'    => 1,
+                    'is_on' => 1
+                ]);
+    //这里最好用主库查询
+    $user = UserModel::one($query, true);
+    if(!isset($user['id'])) {
+        //返回false会自动回滚事务
+        return false;
+    }
+    
+    //.....其他操作
+    
+    $rows = $connection->execute('UPDATE `user` SET `true_name`=? WHERE id=1 AND version=?', [
+        'zheng boss', $user['version']
+    ]);
+    
+    //如果受影响函数是1，返回true，返回true会自动提交事务
+    return $rows === 1;
+});
+
+if(!$success) {
+    exit('事务提交失败'.PHP_EOL);
+}
+exit('事务提交成功'.PHP_EOL);
+```
+
 ## 2.读写分离
 
 * 默认情况下，查询使用从库进行查询，如果想使用主库查询，需要将`all`、`one`方法的第二个参数变为`true`即可
