@@ -102,7 +102,12 @@ class Connection extends Roach
 
         foreach ($configs as $config) {
             try {
-                $config['options'] = isset($config['options']) ? array_merge($this->_defaultOptions, $configs['options']) : $this->_defaultOptions;
+                if(substr($config['dsn'], 0, 6) === 'sqlite') {
+                    $config['options'] = null;
+                } else {
+                    $config['options'] = isset($config['options']) ? array_merge($this->_defaultOptions, $config['options']) : $this->_defaultOptions;
+                }
+
                 $pdo = new \PDO($config['dsn'], $config['username'], $config['password'], $config['options']);
                 return $pdo;
             }catch (\Throwable $throwable) {

@@ -16,7 +16,8 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "require": {
-    "jhq0113/roach": "^1.0"
+    "jhq0113/roach": "^1.0",
+    "ext-pdo": "*"
   },
   "autoload": {
     "psr-4": {
