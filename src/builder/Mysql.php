@@ -19,18 +19,6 @@ use roach\orm\SqlBuilder;
 class Mysql extends SqlBuilder
 {
     /**
-     * @param string $field
-     * @return string
-     * @datetime 2020/7/4 7:00 PM
-     * @author roach
-     * @email jhq0113@163.com
-     */
-    public static function formatField($field)
-    {
-        return $field[0] === '`' ? $field : '`'.$field.'`';
-    }
-
-    /**
      * @return string
      * @datetime 2020/7/4 7:26 PM
      * @author roach

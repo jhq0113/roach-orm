@@ -193,7 +193,7 @@ abstract class SqlBuilder extends Roach
      */
     public static function formatField($field)
     {
-        return $field;
+        return $field[0] === '`' ? $field : '`'.$field.'`';
     }
 
     /**
@@ -219,7 +219,7 @@ abstract class SqlBuilder extends Roach
     protected static function _analyWhere($where, &$params = [])
     {
         if(empty($where)) {
-            $where = '';
+            return '';
         } elseif (is_array($where)) {
             $finallyWhere = [];
 
