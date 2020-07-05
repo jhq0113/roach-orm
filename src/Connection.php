@@ -86,7 +86,7 @@ class Connection extends Roach
      */
     protected $_defaultOptions =[
         \PDO::ATTR_TIMEOUT      => 3,
-        \PDO::ERRMODE_EXCEPTION => true,
+        \PDO::ATTR_ERRMODE      => \PDO::ERRMODE_EXCEPTION,
     ];
 
     /**
