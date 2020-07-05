@@ -157,7 +157,7 @@ $rows = UserModel::insert([
 var_dump($rows);
 ```
 
-* B.使用`where`
+* 查询
 
 > `where`条件可以是数组，也可以是字符串，当`where`条件为数组时，多个条件之间是`AND`关系，`all`、`one`、`updateAll`和`deleteAll`等方法中的`where`条件的表达式解析是一致的
 
@@ -191,7 +191,7 @@ $userList = UserModel::all($query);
 
 ```php
 <?php
-//SELECT * FROM `user` WHERE `id` IN(1,2,3) LIMIT 1000
+//SELECT * FROM `user` WHERE `id` BETWEEN 1 AND 3 LIMIT 1000
 $query = UserModel::find()
             ->where([
                'id BETWEEN' => [1, 3] 
@@ -204,7 +204,7 @@ $userList = UserModel::all($query);
 
 ```php
 <?php
-//SELECT * FROM `user` WHERE `id` IN(1,2,3) LIMIT 1000
+//SELECT * FROM `user` WHERE `id`<3 LIMIT 1000
 $query = UserModel::find()
             ->where([
                'id <' => 3
@@ -217,6 +217,7 @@ $userList = UserModel::all($query);
 
 ```php
 <?php
+//SELECT * FROM `user` WHERE `true_name` LIKE '周%' LIMIT 1000
 $query = UserModel::find()
             ->where([
                'true_name LIKE' => '周%'
@@ -238,3 +239,195 @@ $query = UserModel::find()
 
 $user = UserModel::one($query);
 ```
+
+> `GROUP BY`查询
+
+```php
+<?php
+//SELECT COUNT(`is_on`) AS `count`,`is_on` FROM `user` GROUP BY `is_on` LIMIT 1000
+$query = UserModel::find()
+    ->select('COUNT(`is_on`) AS `count`,`is_on`')
+    ->group([
+        'is_on', //可以接多个
+    ]);
+
+$user = UserModel::all($query);
+```
+
+> `ORDER BY`查询
+
+```php
+<?php
+//SELECT 'id', 'true_name' FROM `user` ORDER BY `id` DESC LIMIT 1000
+$query = UserModel::find()
+    ->select([
+       'id', 'true_name' 
+    ])
+    ->order([
+        'id'    => SORT_DESC, 
+        'is_on' => SORT_ASC,
+    ]);
+
+$user = UserModel::all($query);
+```
+
+> 分页查询
+
+```php
+<?php
+//SELECT * FROM `user` LIMIT 0,10
+$query = UserModel::find()
+    ->offset(0)
+    ->limit(10);
+
+$user = UserModel::all($query);
+```
+
+* 更新操作
+
+```php
+<?php
+//这里返回的是受影响行数
+//UPDATE `user` SET `true_name`='sun boss' WHERE `id`=1;
+$rows = UserModel::updateAll(['true_name' => 'sun boss'], ['id' => 1]);
+```
+
+* 删除操作
+
+```php
+<?php
+//这里返回的是受影响行数
+//DELETE FROM `user` WHERE `id`=1;
+$rows = UserModel::deleteAll(['id' => 4]);
+```
+
+## 2.读写分离
+
+* 默认情况下，查询使用从库进行查询，如果想使用主库查询，需要将`all`、`one`方法的第二个参数变为`true`即可
+
+```php
+<?php
+//SELECT * FROM `user` WHERE `id`=1 AND `is_on`=1
+$query = UserModel::find()
+    ->where([
+        'id'    => 1,
+        'is_on' => 1
+    ]);
+//主库查询
+$user = UserModel::one($query, true);
+```
+
+* 所有写操作都是走的主库
+
+* 执行原生sql
+
+> 读操作
+
+```php
+<?php
+$users = UserModel::getDb()->queryAll('SELECT * FROM `user` WHERE id=? UNION SELECT * FROM `user` WHERE id=?', [
+    1, 2
+]);
+```
+
+> 写操作
+
+```php
+<?php
+//这里返回受影响行数
+$rows = UserModel::getDb()->execute('UPDATE `user` SET `true_name`=? WHERE id=1 AND version=1', [
+    'wu boss'
+]);
+```
+
+## 3.切库
+
+> 如果我们的项目使用的不是一个数据库集群，这样我们的项目就需要跨集群访问数据库，可以通过如下方式实现
+
+```php
+<?php
+//将一组新的数据库集群注册到`Container`中，key自己定义即可
+\roach\Container::set('tradeDb', [
+    'class' => 'roach\orm\Connection',
+    //
+    'masters' => [
+        [
+            'dsn'      => 'mysql:host=192.168.1.14;port=3306;dbname=roach;charset=utf-8',
+            'username' => 'roach', 
+            'password' => 'roach',   
+        ],
+        [
+            'dsn'      => 'mysql:host=192.168.1.13;port=3306;dbname=roach;charset=utf-8',
+            'username' => 'roach', 
+            'password' => 'roach',
+            //可以通过options指定配置属性
+            'options'  => [
+                \PDO::ATTR_TIMEOUT => 3,   
+            ]    
+        ],
+    ],
+    //如果没有slave节点，可以不配置，会自动复用master节点
+    'slaves' => [
+        [
+           'dsn'      => 'mysql:host=192.168.1.15;port=3306;dbname=roach;charset=utf-8',
+           'username' => 'roach', 
+           'password' => 'roach',  
+           'options'  => [
+                \PDO::ATTR_TIMEOUT => 2,   
+           ] 
+        ],
+        [
+           'dsn'      => 'mysql:host=192.168.1.16;port=3306;dbname=roach;charset=utf-8',
+           'username' => 'roach', 
+           'password' => 'roach', 
+           'options'  => [
+               \PDO::ATTR_TIMEOUT => 2,   
+           ]   
+        ], 
+    ]
+]);
+```
+
+> Model类中
+
+```php
+<?php
+/**
+ * Created by PhpStorm.
+ * User: Jiang Haiqiang
+ * Date: 2020/7/5
+ * Time: 1:33 PM
+ */
+
+/**
+ * Class TradeModel
+ * @datetime 2020/7/5 1:33 PM
+ * @author roach
+ * @email jhq0113@163.com
+ */
+class TradeModel extends \roach\orm\Model
+{
+    /**表名称
+     * @var string
+     * @datetime 2020/7/5 1:33 PM
+     * @author roach
+     * @email jhq0113@163.com 
+     */
+    public static $tableName = 'trade';
+    
+    /**
+    * @return mixed|\roach\orm\Connection
+    * @throws ReflectionException
+    * @datetime 2020/7/5 2:22 PM
+    * @author roach
+    * @email jhq0113@163.com
+     */
+    public static function getDb()
+    {
+        return \roach\Container::get('tradeDb');
+    }
+}
+```
+
+> 这样我们就完成切库，当我们使用TradeModel访问数据库是自动调用的是`tradeDb`集群的数据库
+
