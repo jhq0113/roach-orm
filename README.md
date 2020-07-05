@@ -139,7 +139,7 @@ exit('插入成功，用户id为'.$newUserId.PHP_EOL);
 /**
  * 此处返回受影响行数 
  */
-$rows = UserModel::insert([
+$rows = UserModel::batchInsert([
     [
         'user_name'   => 'zhao boss',
         'true_name'   => '赵**',
