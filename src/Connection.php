@@ -7,6 +7,8 @@
  */
 namespace roach\orm;
 
+use roach\events\Event;
+use roach\events\EventObject;
 use roach\orm\exceptions\Exception;
 use roach\Roach;
 
@@ -19,6 +21,31 @@ use roach\Roach;
  */
 class Connection extends Roach
 {
+    /**
+     * 使用trait
+     */
+    use Event;
+
+    /**
+     * 执行sql前事件
+     */
+    const EVENT_BEFORE_QUERY = 'db:query:before';
+
+    /**
+     * 执行sql后事件
+     */
+    const EVENT_AFTER_QUERY = 'db:query:after';
+
+    /**
+     * 某个节点连接异常事件，此事件不会抛出异常，只有当所有连接都连接不上才会抛出异常
+     */
+    const EVENT_EXCEPTION_CONNECT = 'db:connect:exception';
+
+    /**
+     * 连接断了，此事件不会抛出异常，只有当所有连接都连接不上才会抛出异常
+     */
+    const EVENT_EXCEPTION_CONNECT_LOST    = 'db:connect:lost';
+
     /**
      * @var array
      * @datetime 2020/7/5 10:20 AM
@@ -52,9 +79,20 @@ class Connection extends Roach
     protected $_slave;
 
     /**
+     * @var array
+     * @datetime 2020/7/5 11:50 AM
+     * @author roach
+     * @email jhq0113@163.com
+     */
+    protected $_defaultOptions =[
+        \PDO::ATTR_TIMEOUT      => 3,
+        \PDO::ERRMODE_EXCEPTION => true,
+    ];
+
+    /**
      * @param array $configs
      * @return \PDO
-     * @datetime 2020/7/5 10:29 AM
+     * @datetime 2020/7/5 12:19 PM
      * @author roach
      * @email jhq0113@163.com
      */
@@ -64,9 +102,22 @@ class Connection extends Roach
 
         foreach ($configs as $config) {
             try {
+                $config['options'] = isset($config['options']) ? array_merge($this->_defaultOptions, $configs['options']) : $this->_defaultOptions;
                 $pdo = new \PDO($config['dsn'], $config['username'], $config['password'], $config['options']);
                 return $pdo;
             }catch (\Throwable $throwable) {
+                if($this->hasHandlers(self::EVENT_EXCEPTION_CONNECT)) {
+                    $event = new EventObject([
+                        'sender' => $this,
+                        'data'   => [
+                            'exception' => $throwable,
+                            'config'    => $config,
+                        ],
+                    ]);
+
+                    //触发一个事件，将异常信息传递给handler，前端用户是无感知的，但是开发人员得紧急查看一下数据库状态了。
+                    $this->trigger(self::EVENT_EXCEPTION_CONNECT, $event);
+                }
                 continue;
             }
         }
@@ -117,20 +168,50 @@ class Connection extends Roach
     /**
      * @param bool   $useMaster
      * @param string $sql
-     * @return \PDOStatement
+     * @return bool|\PDOStatement
      * @throws Exception
-     * @datetime 2020/7/5 10:39 AM
+     * @datetime 2020/7/5 12:12 PM
      * @author roach
      * @email jhq0113@163.com
      */
     protected function _createCommand($useMaster, $sql)
     {
-        if($useMaster) {
-            $pdo = $this->_master();
-            return $pdo->prepare($sql);
-        } else {
-            $pdo = $this->_slave();
-            return $pdo->prepare($sql);
+        if($this->hasHandlers(self::EVENT_BEFORE_QUERY)) {
+            $event = new EventObject([
+                'sender' => $this,
+                'data'   => [
+                    'sql' => $sql
+                ],
+            ]);
+
+            $this->trigger(self::EVENT_BEFORE_QUERY, $event);
+        }
+
+        try {
+            if($useMaster) {
+                $pdo = $this->_master();
+                return $pdo->prepare($sql);
+            } else {
+                $pdo = $this->_slave();
+                return $pdo->prepare($sql);
+            }
+        }catch (\Throwable $throwable) {
+            if($this->hasHandlers(self::EVENT_EXCEPTION_CONNECT_LOST)) {
+                $event->data['exception'] = $throwable;
+                //触发一个事件，将异常信息传递给handler，前端用户是无感知的。
+                $this->trigger(self::EVENT_EXCEPTION_CONNECT_LOST, $event);
+            }
+
+            //连接断了，原因可能是超时、mysql宕机等，会重新选择一个数据库，仅重新选择一次
+            if($useMaster) {
+                $this->_master = null;
+                $pdo = $this->_master();
+                return $pdo->prepare($sql);
+            } else {
+                $this->_slave = null;
+                $pdo = $this->_slave();
+                return $pdo->prepare($sql);
+            }
         }
     }
 
@@ -151,7 +232,7 @@ class Connection extends Roach
      * @param bool   $useMaster
      * @return array
      * @throws Exception
-     * @datetime 2020/7/5 10:40 AM
+     * @datetime 2020/7/5 12:13 PM
      * @author roach
      * @email jhq0113@163.com
      */
@@ -161,15 +242,31 @@ class Connection extends Roach
         $stmt->execute($params);
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         $stmt->closeCursor();
+
+        //如果有事件处理函数
+        if($this->hasHandlers(self::EVENT_AFTER_QUERY)) {
+            $event = new EventObject([
+                'sender' => $this,
+                'data'   => [
+                    'sql'     => $sql,
+                    'params'  => $params,
+                    'stmt'    => $stmt
+                ],
+            ]);
+
+            $this->trigger(self::EVENT_AFTER_QUERY, $event);
+        }
+
         return $rows;
     }
 
     /**
-     * @param string $sql
-     * @param array  $params
+     * @param $sql
+     * @param array $params
      * @return int
      * @throws Exception
-     * @datetime 2020/7/5 10:42 AM
+     * @throws \ReflectionException
+     * @datetime 2020/7/5 12:13 PM
      * @author roach
      * @email jhq0113@163.com
      */
@@ -177,6 +274,21 @@ class Connection extends Roach
     {
         $stmt = $this->_createCommand(true, $sql);
         $stmt->execute($params);
+
+        //如果有事件处理函数
+        if($this->hasHandlers(self::EVENT_AFTER_QUERY)) {
+            $event = new EventObject([
+                'sender' => $this,
+                'data'   => [
+                    'sql'     => $sql,
+                    'params'  => $params,
+                    'stmt'    => $stmt
+                ],
+            ]);
+
+            $this->trigger(self::EVENT_AFTER_QUERY, $event);
+        }
+
         return $stmt->rowCount();
     }
 

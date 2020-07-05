@@ -340,4 +340,18 @@ abstract class SqlBuilder extends Roach
      {
          return 'DELETE FROM '.static::formatField($table).static::_analyWhere($where,$params);
      }
+
+    /**
+     * @param string       $table
+     * @param array|string $where
+     * @param array        $params
+     * @return string
+     * @datetime 2020/7/5 12:41 PM
+     * @author roach
+     * @email jhq0113@163.com
+     */
+     static public function count($table, $where, &$params = [])
+     {
+         return 'SELECT COUNT(*) AS `count` FROM '.static::formatField($table).static::_analyWhere($where, $params);
+     }
 }
