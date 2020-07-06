@@ -475,7 +475,7 @@ class TradeModel extends \roach\orm\Model
 |db:query:after|roach\orm\Connection::EVENT_AFTER_QUERY|执行sql之后触发|
 |db:connect:lost|roach\orm\Connection::EVENT_EXCEPTION_CONNECT_LOST|在执行sql时，连接断了，此事件不会抛出异常，只有当所有连接都连接不上才会抛出异常|
 
-> 我们可以在向`Container`中注册数据库组件时监听这些事件，等事件触发时做相应的处理即可，直接获取到对象自己手动调用`on`方法进行监听。
+> 我们可以在向`Container`中注册数据库组件时监听这些事件，等事件触发时做相应的处理即可，以下是注入方法方式绑定。
 
 ```php
 <?php
@@ -517,10 +517,56 @@ class TradeModel extends \roach\orm\Model
            ]   
         ], 
     ],
+    'calls' => [
+        [
+            'method' => 'on',
+            'params' => [
+                \roach\orm\Connection::EVENT_EXCEPTION_CONNECT,
+                function(\roach\events\EventObject $event){
+                    //。。。打日志报警等各种处理，该事件触发了，并不一定所有的节点都不能用了
+                    //exception中是异常信息，config是节点配置
+                    var_dump($event->data['exception'], $event['config']);
+                }
+            ]
+        ],
+        [
+            'method' => 'on',
+            'params' => [
+                \roach\orm\Connection::EVENT_EXCEPTION_CONNECT_LOST, function (\roach\events\EventObject $event){
+                   //...各种操作
+                   //sql是指当执行某条sql时，mysql连接断了，但是会自动重连一次，如果重连失败，不会再触发该事件，会抛出异常
+                   var_dump($event->data['sql'], $event->data['exception']);
+               }
+            ]
+        ],
+        [
+            'method' => 'on',
+            'params' => [
+                \roach\orm\Connection::EVENT_BEFORE_QUERY, function (\roach\events\EventObject $event){
+                   //params为参数绑定查询的参数
+                   var_dump($event->data['stmt'], $event->data['sql'], $event->data['params']);
+                }
+            ]
+        ],
+        [
+            'method' => 'on',
+            'params' => [
+                \roach\orm\Connection::EVENT_AFTER_QUERY, function (\roach\events\EventObject $event){
+                   //params为参数绑定查询的参数
+                   var_dump($event->data['stmt'], $event->data['sql'], $event->data['params']);
+               }
+            ]
+        ],
+    ]
 ]);
+```
 
+> 手动绑定事件
+
+```php
+<?php
 /**此处不会去连接数据库，只是创建\roach\orm\Connection类而已，主要当真正执行sql的时候才会真正的去连接数据库
- * @var \roach\orm\Connection $db 
+ * @var \roach\orm\Connection $db
  */
 $db = \roach\Container::get('db');
 $db->on(\roach\orm\Connection::EVENT_EXCEPTION_CONNECT, function(\roach\events\EventObject $event){
