@@ -139,7 +139,7 @@ exit('插入成功，用户id为'.$newUserId.PHP_EOL);
 /**
  * 此处返回受影响行数 
  */
-$rows = UserModel::batchInsert([
+$rows = UserModel::multiInsert([
     [
         'user_name'   => 'zhao boss',
         'true_name'   => '赵**',
@@ -288,7 +288,7 @@ $rows = UserModel::updateAll(['true_name' => 'sun boss'], ['id' => 1]);
 ```php
 <?php
 //这里返回的是受影响行数
-//DELETE FROM `user` WHERE `id`=1;
+//DELETE FROM `user` WHERE `id`=4;
 $rows = UserModel::deleteAll(['id' => 4]);
 ```
 
@@ -303,7 +303,7 @@ $success = UserModel::getDb()->transaction(function (\roach\orm\Connection $conn
                     'is_on' => 1
                 ])
                 //事务要都用主库查询
-                ->one($connection, true);
+                ->one(true);
     if(!isset($user['id'])) {
         //返回false会自动回滚事务
         return false;
@@ -327,7 +327,7 @@ exit('事务提交成功'.PHP_EOL);
 
 ## 2.读写分离
 
-* 默认情况下，查询使用从库进行查询，如果想使用主库查询，需要将`all`、`one`方法的第二个参数变为`true`即可
+* 默认情况下，查询使用从库进行查询，如果想使用主库查询，需要将`all`、`one`方法的参数变为`true`即可
 
 ```php
 <?php
@@ -337,7 +337,7 @@ $user = UserModel::find()
         'id'    => 1,
         'is_on' => 1
     ])
-    ->one(null, true);
+    ->one(true);
 ```
 
 * 所有写操作都是走的主库

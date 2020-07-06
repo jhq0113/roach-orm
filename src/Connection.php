@@ -79,17 +79,6 @@ class Connection extends Roach
     protected $_slave;
 
     /**
-     * @var array
-     * @datetime 2020/7/5 11:50 AM
-     * @author roach
-     * @email jhq0113@163.com
-     */
-    protected $_defaultOptions =[
-        \PDO::ATTR_TIMEOUT      => 3,
-        \PDO::ATTR_ERRMODE      => \PDO::ERRMODE_EXCEPTION,
-    ];
-
-    /**
      * @var string
      * @datetime 2020/7/6 1:32 下午
      * @author   roach
@@ -127,9 +116,8 @@ class Connection extends Roach
                 if(substr($config['dsn'], 0, 6) === 'sqlite') {
                     $config['options'] = null;
                 } else {
-                    $config['options'] = isset($config['options']) ? array_merge($this->_defaultOptions, $config['options']) : $this->_defaultOptions;
+                    $config['options'][ \PDO::ATTR_ERRMODE ] = \PDO::ERRMODE_EXCEPTION;
                 }
-
                 $pdo = new \PDO($config['dsn'], $config['username'], $config['password'], $config['options']);
                 return $pdo;
             }catch (\Throwable $throwable) {

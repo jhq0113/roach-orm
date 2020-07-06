@@ -297,7 +297,6 @@ abstract class SqlBuilder extends Roach
      abstract public function build();
 
     /**
-     * @param Connection|null $db
      * @param bool $useMaster
      * @return array
      * @throws exceptions\Exception
@@ -305,16 +304,12 @@ abstract class SqlBuilder extends Roach
      * @author   roach
      * @email    jhq0113@163.com
      */
-     public function all(Connection $db = null, $useMaster = false)
+     public function all($useMaster = false)
      {
-         if(is_null($db)) {
-             return $this->_db->queryAll($this->build(), $this->_params, $useMaster);
-         }
-         return $db->queryAll($this->build(), $this->_params, $useMaster);
+         return $this->_db->queryAll($this->build(), $this->_params, $useMaster);
      }
 
     /**
-     * @param Connection|null $db
      * @param bool $useMaster
      * @return array
      * @throws exceptions\Exception
@@ -322,16 +317,10 @@ abstract class SqlBuilder extends Roach
      * @author   roach
      * @email    jhq0113@163.com
      */
-     public function one(Connection $db = null, $useMaster = false)
+     public function one($useMaster = false)
      {
          $this->limit(1);
-
-         if(is_null($db)) {
-             $rows = $this->_db->queryAll($this->build(), $this->_params, $useMaster);
-         } else {
-             $rows = $db->queryAll($this->build(), $this->_params, $useMaster);
-         }
-
+         $rows = $this->_db->queryAll($this->build(), $this->_params, $useMaster);
          if(isset($rows[0])) {
              return $rows[0];
          }
@@ -340,17 +329,37 @@ abstract class SqlBuilder extends Roach
      }
 
     /**
+     * @param string       $table
+     * @param array|string $where
+     * @param bool         $useMaster
+     * @return int
+     * @datetime 2020/7/5 12:41 PM
+     * @author roach
+     * @email jhq0113@163.com
+     */
+    public function count($table, $where, $useMaster = false)
+    {
+        $params = [];
+        $sql = 'SELECT COUNT(*) AS `count` FROM '.static::formatField($table).static::_analyWhere($where, $params);
+        $rows = $this->_db->queryAll($sql, $params, $useMaster);
+        if(isset($rows[0]['count'])) {
+            return (int)$rows[0]['count'];
+        }
+        return 0;
+    }
+
+    /**
      * @param string $table
      * @param array  $rows
-     * @param array  $params
      * @param bool   $ignore
-     * @return string
+     * @return int
      * @datetime 2020/7/5 10:13 AM
      * @author roach
      * @email jhq0113@163.com
      */
-     static public function multiInsert($table, $rows, &$params = [], $ignore = false)
+     public function multiInsert($table, $rows, $ignore = false)
      {
+        $params = [];
         $fields = array_map(function($field){
             return static::formatField($field);
         }, array_keys($rows[0]));
@@ -363,59 +372,49 @@ abstract class SqlBuilder extends Roach
         }
 
         $placeHolder = rtrim($placeHolder, ',');
-        return 'INSERT '.($ignore ? 'IGNORE' :'').' INTO '.static::formatField($table).'('.implode(',',$fields).')VALUES'.$placeHolder;
+        $sql = 'INSERT '.($ignore ? 'IGNORE' :'').' INTO '.static::formatField($table).'('.implode(',',$fields).')VALUES'.$placeHolder;
+
+        return $this->_db->execute($sql, $params);
      }
 
     /**
      * @param string       $table
      * @param array|string $set
      * @param array|string $where
-     * @param array        $params
-     * @return string
+     * @return int
      * @datetime 2020/7/5 10:14 AM
      * @author roach
      * @email jhq0113@163.com
      */
-     static public function updateAll($table,$set, $where, &$params = [])
+     public function updateAll($table, $set, $where)
      {
-        if(is_array($set)) {
-            $sets = [];
-            foreach ($set as $field => $value) {
+         $params = [];
+         if(is_array($set)) {
+             $sets = [];
+             foreach ($set as $field => $value) {
                 array_push($params,$value);
                 array_push($sets,static::formatField($field).'=?');
-            }
+             }
 
-            $set = implode(',',$sets);
-        }
+             $set = implode(',',$sets);
+         }
 
-        return 'UPDATE '.static::formatField($table).' SET '.$set.static::_analyWhere($where,$params);
+         $sql =  'UPDATE '.static::formatField($table).' SET '.$set.static::_analyWhere($where,$params);
+         return $this->_db->execute($sql, $params);
      }
 
     /**
      * @param string       $table
      * @param array|string $where
-     * @param array        $params
-     * @return string
+     * @return int
      * @datetime 2020/7/5 10:14 AM
      * @author roach
      * @email jhq0113@163.com
      */
-     static public function deleteAll($table, $where, &$params = [])
+     public function deleteAll($table, $where)
      {
-         return 'DELETE FROM '.static::formatField($table).static::_analyWhere($where,$params);
-     }
-
-    /**
-     * @param string       $table
-     * @param array|string $where
-     * @param array        $params
-     * @return string
-     * @datetime 2020/7/5 12:41 PM
-     * @author roach
-     * @email jhq0113@163.com
-     */
-     static public function count($table, $where, &$params = [])
-     {
-         return 'SELECT COUNT(*) AS `count` FROM '.static::formatField($table).static::_analyWhere($where, $params);
+         $params = [];
+         $sql = 'DELETE FROM '.static::formatField($table).static::_analyWhere($where,$params);
+         return $this->_db->execute($sql, $params);
      }
 }

@@ -7,26 +7,28 @@ roach\Container::set('db', [
     'class' => 'roach\orm\Connection',
     'masters' => [
         [
-            'dsn'      => 'mysql:host=10.16.49.113;port=3306;dbname=doctor_v6;charset=utf8',
-            'username' => 'browser',
-            'password' => 'browser.360',
-        ],
-        [
-            'dsn'      => 'mysql:host=10.16.49.113;port=3306;dbname=doctor_v6;charset=utf8',
-            'username' => 'browser',
-            'password' => 'browser.360',
-            //可以通过options指定配置属性
+            'dsn'      => 'mysql:host=192.168.1.13;port=3306;dbname=roach;charset=utf8',
+            'username' => 'roach',
+            'password' => 'roach',
             'options'  => [
-                \PDO::ATTR_TIMEOUT => 3,
+                \PDO::ATTR_TIMEOUT => 2,
             ]
         ],
     ],
     //如果没有slave节点，可以不配置，会自动复用master节点
     'slaves' => [
         [
-            'dsn'      => 'mysql:host=10.16.49.113;port=3306;dbname=doctor_v6;charset=utf8',
-            'username' => 'browser',
-            'password' => 'browser.360',
+            'dsn'      => 'mysql:host=192.168.1.12;port=3306;dbname=roach;charset=utf8',
+            'username' => 'roach',
+            'password' => 'roach',
+            'options'  => [
+                \PDO::ATTR_TIMEOUT => 2,
+            ]
+        ],
+        [
+            'dsn'      => 'mysql:host=192.168.1.11;port=3306;dbname=roach;charset=utf8',
+            'username' => 'roach',
+            'password' => 'roach',
             'options'  => [
                 \PDO::ATTR_TIMEOUT => 2,
             ]
@@ -89,7 +91,7 @@ class UserModel extends \roach\orm\Model
      * @author   roach
      * @email    jhq0113@163.com
      */
-    public static $tableName = 't_user';
+    public static $tableName = 'user';
 
     /**示例表
      * sql
@@ -110,7 +112,7 @@ class UserModel extends \roach\orm\Model
 }
 
 $rows = UserModel::insert([
-    'user_name'   => 'zhou boss',
+    'user_name'   => 'zhou boss '.time(),
     'true_name'   => '周**',
     'password'    => hash_hmac('md5', 'Mr.zhou', 'sdfs#$#@3fd'),
     'update_time' => time()
@@ -122,4 +124,98 @@ if($rows < 1) {
 
 //如果想获取刚刚插入数据的`id`,通过如下方式
 $newUserId = UserModel::getDb()->lastInsertId();
-exit('插入成功，用户id为'.$newUserId.PHP_EOL);
+echo '插入成功，用户id为'.$newUserId.PHP_EOL;
+
+
+$rows = UserModel::multiInsert([
+    [
+        'user_name'   => 'zhao boss '.time(),
+        'true_name'   => '赵**',
+        'password'    => hash_hmac('md5', 'Mr.zhao', 'sdfs#$#@3fd'),
+        'update_time' => time()
+    ],
+    [
+        'user_name'   => 'li boss '.time(),
+        'true_name'   => '李**',
+        'password'    => hash_hmac('md5', 'Mr.li', 'sdfs#$#@3fd'),
+        'update_time' => time()
+    ],
+]);
+
+var_dump($rows);
+
+$user = UserModel::find()
+    ->where([
+        'id' => 1,
+    ])
+    ->one();
+
+var_dump($user);
+
+$userList = UserModel::find()
+    ->where([
+        'id' => [1, 2, 3]
+    ])
+    ->all();
+
+var_dump($userList);
+
+
+$userList = UserModel::find()
+    ->where([
+        'id BETWEEN' => [1, 3]
+    ])
+    ->all();
+
+var_dump($userList);
+
+
+$userList = UserModel::find()
+    ->where([
+        'id <' => 3
+    ])
+    ->all();
+
+var_dump($userList);
+
+$user = UserModel::find()
+    ->where([
+        'id'    => 1,
+        'is_on' => 0
+    ])
+    ->one();
+
+var_dump($user);
+
+$list = UserModel::find()
+    ->select('COUNT(`is_on`) AS `count`,`is_on`')
+    ->group([
+        'is_on', //可以接多个
+    ])
+    ->all();
+var_dump($list);
+
+
+$userList = UserModel::find()
+    ->select([
+        'id', 'true_name'
+    ])
+    ->order([
+        'id'    => SORT_DESC,
+        'is_on' => SORT_ASC,
+    ])
+    ->all();
+var_dump($userList);
+
+$userList = UserModel::find()
+    ->offset(0)
+    ->limit(10)
+    ->all();
+
+var_dump($userList);
+
+$rows = UserModel::updateAll(['true_name' => 'sun boss'], ['id' => 1]);
+var_dump($rows);
+
+$rows = UserModel::deleteAll(['id' => 4]);
+var_dump($rows);

@@ -49,6 +49,9 @@ class Model extends Roach
     {
         return Container::createRoach([
             'class' => 'roach\orm\builder\\'.$db->getDriver(),
+            'calls' => [
+                'db' => [ $db ],
+            ]
         ]);
     }
 
@@ -61,18 +64,8 @@ class Model extends Roach
      */
     public static function find()
     {
-        $db = static::getDb();
-        return Container::createRoach([
-            'class' => static::getBuilder($db),
-            'calls' => [
-                'db'   => [
-                    $db,
-                ],
-                'from' => [
-                    static::$tableName
-                ]
-            ]
-        ]);
+        $builder = static::getBuilder(static::getDb());
+        return $builder->from(static::$tableName);
     }
 
     /**
@@ -86,15 +79,7 @@ class Model extends Roach
      */
     public static function count($where, $useMaster = false)
     {
-        $params = [];
-        $db = static::getDb();
-        $builder = static::getBuilder($db);
-        $sql     = $builder::count(static::$tableName, $where, $params);
-        $rows = $db->queryAll($sql, $params, $useMaster);
-        if(isset($rows[0]['count'])) {
-            return (int)$rows[0]['count'];
-        }
-        return 0;
+        return static::getBuilder(static::getDb())->count(static::$tableName, $where, $useMaster);
     }
 
     /**
@@ -108,11 +93,7 @@ class Model extends Roach
      */
     public static function insert($row, $ignore = false)
     {
-        $params = [];
-        $db = static::getDb();
-        $builder = static::getBuilder($db);
-        $sql = $builder::multiInsert(static::$tableName, [ $row ], $params, $ignore);
-        return $db->execute($sql, $params);
+        return static::getBuilder(static::getDb())->multiInsert(static::$tableName, [ $row ], $ignore);
     }
 
     /**
@@ -124,13 +105,9 @@ class Model extends Roach
      * @author roach
      * @email jhq0113@163.com
      */
-    public static function batchInsert($rows, $ignore = false)
+    public static function multiInsert($rows, $ignore = false)
     {
-        $params = [];
-        $db = static::getDb();
-        $builder = static::getBuilder($db);
-        $sql = $builder::multiInsert(static::$tableName, $rows, $params, $ignore);
-        return $db->execute($sql, $params);
+        return static::getBuilder(static::getDb())->multiInsert(static::$tableName, $rows, $ignore);
     }
 
     /**
@@ -144,11 +121,7 @@ class Model extends Roach
      */
     public static function updateAll($set, $where)
     {
-        $params = [];
-        $db = static::getDb();
-        $builder = static::getBuilder($db);
-        $sql = $builder::updateAll(static::$tableName, $set, $where, $params);
-        return $db->execute($sql, $params);
+        return static::getBuilder(static::getDb())->updateAll(static::$tableName, $set, $where);
     }
 
     /**
@@ -161,11 +134,7 @@ class Model extends Roach
      */
     public static function deleteAll($where)
     {
-        $params = [];
-        $db = static::getDb();
-        $builder = static::getBuilder($db);
-        $sql = $builder::deleteAll(static::$tableName, $where, $params);
-        return $db->execute($sql, $params);
+        return static::getBuilder(static::getDb())->deleteAll(static::$tableName, $where);
     }
 
     /**
