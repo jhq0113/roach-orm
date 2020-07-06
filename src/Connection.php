@@ -113,11 +113,11 @@ class Connection extends Roach
 
         foreach ($configs as $config) {
             try {
-                if(substr($config['dsn'], 0, 6) === 'sqlite') {
-                    $config['options'] = null;
-                } else {
-                    $config['options'][ \PDO::ATTR_ERRMODE ] = \PDO::ERRMODE_EXCEPTION;
+                if(!isset($config['options'])) {
+                    $config['options'] = [];
                 }
+                $config['options'][ \PDO::ATTR_ERRMODE ] = \PDO::ERRMODE_EXCEPTION;
+
                 $pdo = new \PDO($config['dsn'], $config['username'], $config['password'], $config['options']);
                 return $pdo;
             }catch (\Throwable $throwable) {
