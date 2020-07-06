@@ -565,7 +565,7 @@ class TradeModel extends \roach\orm\Model
 
 ```php
 <?php
-/**此处不会去连接数据库，只是创建\roach\orm\Connection类而已，主要当真正执行sql的时候才会真正的去连接数据库
+/**此处不会去连接数据库，只是创建\roach\orm\Connection类而已，当真正执行sql的时候才会真正的去连接数据库
  * @var \roach\orm\Connection $db
  */
 $db = \roach\Container::get('db');
