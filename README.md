@@ -475,7 +475,7 @@ class TradeModel extends \roach\orm\Model
 |db:query:after|roach\orm\Connection::EVENT_AFTER_QUERY|执行sql之后触发|
 |db:connect:lost|roach\orm\Connection::EVENT_EXCEPTION_CONNECT_LOST|在执行sql时，连接断了，此事件不会抛出异常，只有当所有连接都连接不上才会抛出异常|
 
-> 我们可以在向`Container`中注册数据库组件时监听这些事件，等事件触发时做相应的处理即可，以下是注入方法方式绑定。
+> 我们可以在向`Container`中注册数据库组件时监听这些事件，等事件触发时做相应的处理即可，绑定事件的方式有两种，第一种是注入方法方式绑定。
 
 ```php
 <?php
@@ -561,7 +561,7 @@ class TradeModel extends \roach\orm\Model
 ]);
 ```
 
-> 手动绑定事件
+> 第二种是手动绑定事件
 
 ```php
 <?php
