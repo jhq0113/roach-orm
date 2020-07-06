@@ -90,6 +90,28 @@ class Connection extends Roach
     ];
 
     /**
+     * @var string
+     * @datetime 2020/7/6 1:32 下午
+     * @author   roach
+     * @email    jhq0113@163.com
+     */
+    protected $_driver;
+
+    /**
+     * @return string
+     * @datetime 2020/7/6 1:49 下午
+     * @author   roach
+     * @email    jhq0113@163.com
+     */
+    public function getDriver()
+    {
+        if(is_null($this->_driver)) {
+            $this->_driver = ucfirst(substr($this->masters[0]['dsn'], 0, strpos($this->masters[0]['dsn'], ':')));
+        }
+        return $this->_driver;
+    }
+
+    /**
      * @param array $configs
      * @return \PDO
      * @datetime 2020/7/5 12:19 PM

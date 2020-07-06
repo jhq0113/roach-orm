@@ -19,6 +19,14 @@ use roach\Roach;
 abstract class SqlBuilder extends Roach
 {
     /**
+     * @var Connection
+     * @datetime 2020/7/6 1:52 下午
+     * @author   roach
+     * @email    jhq0113@163.com
+     */
+    protected $_db;
+
+    /**
      * @var string
      * @datetime 2019/9/17 10:55 PM
      * @author roach
@@ -81,6 +89,19 @@ abstract class SqlBuilder extends Roach
      * @email jhq0113@163.com
      */
     protected $_params = [];
+
+    /**
+     * @param Connection $db
+     * @return $this
+     * @datetime 2020/7/6 1:53 下午
+     * @author   roach
+     * @email    jhq0113@163.com
+     */
+    public function db(Connection $db)
+    {
+        $this->_db = $db;
+        return $this;
+    }
 
     /**
      * @param array|string $fields
@@ -274,6 +295,49 @@ abstract class SqlBuilder extends Roach
      * @email jhq0113@163.com
      */
      abstract public function build();
+
+    /**
+     * @param Connection|null $db
+     * @param bool $useMaster
+     * @return array
+     * @throws exceptions\Exception
+     * @datetime 2020/7/6 1:55 下午
+     * @author   roach
+     * @email    jhq0113@163.com
+     */
+     public function all(Connection $db = null, $useMaster = false)
+     {
+         if(is_null($db)) {
+             return $this->_db->queryAll($this->build(), $this->_params, $useMaster);
+         }
+         return $db->queryAll($this->build(), $this->_params, $useMaster);
+     }
+
+    /**
+     * @param Connection|null $db
+     * @param bool $useMaster
+     * @return array
+     * @throws exceptions\Exception
+     * @datetime 2020/7/6 1:57 下午
+     * @author   roach
+     * @email    jhq0113@163.com
+     */
+     public function one(Connection $db = null, $useMaster = false)
+     {
+         $this->limit(1);
+
+         if(is_null($db)) {
+             $rows = $this->_db->queryAll($this->build(), $this->_params, $useMaster);
+         } else {
+             $rows = $db->queryAll($this->build(), $this->_params, $useMaster);
+         }
+
+         if(isset($rows[0])) {
+             return $rows[0];
+         }
+
+         return [];
+     }
 
     /**
      * @param string $table

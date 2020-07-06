@@ -28,14 +28,6 @@ class Model extends Roach
     public static $tableName;
 
     /**
-     * @var string
-     * @datetime 2020/7/5 12:56 PM
-     * @author roach
-     * @email jhq0113@163.com
-     */
-    public static $builderClass = 'roach\orm\builder\Mysql';
-
-    /**
      * @return Connection
      * @datetime 2020/7/5 10:51 AM
      * @author roach
@@ -47,56 +39,38 @@ class Model extends Roach
     }
 
     /**
-     * @return SqlBuilder
-     * @datetime 2020/7/5 10:54 AM
-     * @author roach
-     * @email jhq0113@163.com
+     * @param Connection $db
+     * @return string
+     * @datetime 2020/7/6 1:49 下午
+     * @author   roach
+     * @email    jhq0113@163.com
+     */
+    public static function getBuilderClass(Connection $db)
+    {
+        return 'roach\orm\builder\\'.$db->getDriver();
+    }
+
+    /**
+     * @return object
+     * @throws \ReflectionException
+     * @datetime 2020/7/6 1:58 下午
+     * @author   roach
+     * @email    jhq0113@163.com
      */
     public static function find()
     {
+        $db = static::getDb();
         return Container::createRoach([
-            'class' => static::$builderClass,
+            'class' => static::getBuilderClass($db),
             'calls' => [
+                'db'   => [
+                    $db,
+                ],
                 'from' => [
                     static::$tableName
                 ]
             ]
         ]);
-    }
-
-    /**
-     * @param SqlBuilder $query
-     * @param bool       $useMaster
-     * @return array
-     * @throws exceptions\Exception
-     * @datetime 2020/7/5 10:55 AM
-     * @author roach
-     * @email jhq0113@163.com
-     */
-    public static function all(SqlBuilder $query, $useMaster = false)
-    {
-        $sql = $query->build();
-        return static::getDb()->queryAll($sql, $query->getParams(), $useMaster);
-    }
-
-    /**
-     * @param SqlBuilder $query
-     * @param bool       $useMaster
-     * @return array
-     * @throws exceptions\Exception
-     * @datetime 2020/7/5 12:43 PM
-     * @author roach
-     * @email jhq0113@163.com
-     */
-    public static function one(SqlBuilder $query, $useMaster = false)
-    {
-        $sql = $query->limit(1)
-                    ->build();
-        $rows = static::getDb()->queryAll($sql, $query->getParams(), $useMaster);
-        if(isset($rows[0])) {
-            return $rows[0];
-        }
-        return [];
     }
 
     /**
@@ -111,8 +85,10 @@ class Model extends Roach
     public static function count($where, $useMaster = false)
     {
         $params = [];
-        $sql    = call_user_func_array(static::$builderClass.'::count', [static::$tableName, $where, $params ]);
-        $rows = static::getDb()->queryAll($sql, $params, $useMaster);
+        $db = static::getDb();
+        $builderClass = static::getBuilderClass($db);
+        $sql    = call_user_func_array($builderClass.'::count', [static::$tableName, $where, $params ]);
+        $rows = $db->queryAll($sql, $params, $useMaster);
         if(isset($rows[0]['count'])) {
             return (int)$rows[0]['count'];
         }
@@ -131,8 +107,10 @@ class Model extends Roach
     public static function insert($row, $ignore = false)
     {
         $params = [];
-        $sql = call_user_func_array(static::$builderClass.'::multiInsert', [static::$tableName, [ $row ], $params, $ignore]);
-        return static::getDb()->execute($sql, $params);
+        $db = static::getDb();
+        $builderClass = static::getBuilderClass($db);
+        $sql = call_user_func_array($builderClass.'::multiInsert', [static::$tableName, [ $row ], $params, $ignore]);
+        return $db->execute($sql, $params);
     }
 
     /**
@@ -147,8 +125,10 @@ class Model extends Roach
     public static function batchInsert($rows, $ignore = false)
     {
         $params = [];
-        $sql = call_user_func_array(static::$builderClass.'::multiInsert', [static::$tableName, $rows, $params, $ignore]);
-        return static::getDb()->execute($sql, $params);
+        $db = static::getDb();
+        $builderClass = static::getBuilderClass($db);
+        $sql = call_user_func_array($builderClass.'::multiInsert', [static::$tableName, $rows, $params, $ignore]);
+        return $db->execute($sql, $params);
     }
 
     /**
@@ -163,8 +143,10 @@ class Model extends Roach
     public static function updateAll($set, $where)
     {
         $params = [];
-        $sql = call_user_func_array(static::$builderClass.'::updateAll', [static::$tableName, $set, $where, $params ]);
-        return static::getDb()->execute($sql, $params);
+        $db = static::getDb();
+        $builderClass = static::getBuilderClass($db);
+        $sql = call_user_func_array($builderClass.'::updateAll', [static::$tableName, $set, $where, $params ]);
+        return $db->execute($sql, $params);
     }
 
     /**
@@ -178,8 +160,10 @@ class Model extends Roach
     public static function deleteAll($where)
     {
         $params = [];
-        $sql = call_user_func_array(static::$builderClass.'::deleteAll', [static::$tableName, $where, $params]);
-        return static::getDb()->execute($sql, $params);
+        $db = static::getDb();
+        $builderClass = static::getBuilderClass($db);
+        $sql = call_user_func_array($builderClass.'::deleteAll', [static::$tableName, $where, $params]);
+        return $db->execute($sql, $params);
     }
 
     /**

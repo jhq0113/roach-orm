@@ -166,12 +166,11 @@ var_dump($rows);
 ```php
 <?php
 //SELECT * FROM `user` WHERE `id`=1 LIMIT 1
-$query = UserModel::find()
+$user = UserModel::find()
     ->where([
         'id' => 1,
-    ]);
-
-$user = UserModel::one($query);
+    ])
+    ->one();
 ```
 
 > IN查询
@@ -179,12 +178,11 @@ $user = UserModel::one($query);
 ```php
 <?php
 //SELECT * FROM `user` WHERE `id` IN(1,2,3) LIMIT 1000
-$query = UserModel::find()
+$userList = UserModel::find()
             ->where([
                'id' => [1, 2, 3] 
-            ]);
-
-$userList = UserModel::all($query);
+            ])
+            ->all();
 ```
 
 > BETWEEN查询
@@ -192,12 +190,11 @@ $userList = UserModel::all($query);
 ```php
 <?php
 //SELECT * FROM `user` WHERE `id` BETWEEN 1 AND 3 LIMIT 1000
-$query = UserModel::find()
+$userList = UserModel::find()
             ->where([
                'id BETWEEN' => [1, 3] 
-            ]);
-
-$userList = UserModel::all($query);
+            ])
+            ->all();
 ```
 
 > 范围查询(`>`, `>=`, `<`, `<=`, `><`, `!=`)
@@ -205,12 +202,11 @@ $userList = UserModel::all($query);
 ```php
 <?php
 //SELECT * FROM `user` WHERE `id`<3 LIMIT 1000
-$query = UserModel::find()
+$userList = UserModel::find()
             ->where([
                'id <' => 3
-            ]);
-
-$userList = UserModel::all($query);
+            ])
+            ->all();
 ```
 
 > LIKE查询
@@ -218,12 +214,11 @@ $userList = UserModel::all($query);
 ```php
 <?php
 //SELECT * FROM `user` WHERE `true_name` LIKE '周%' LIMIT 1000
-$query = UserModel::find()
+$userList = UserModel::find()
             ->where([
                'true_name LIKE' => '周%'
-            ]);
-
-$userList = UserModel::all($query);
+            ])
+            ->all();
 ```
 
 > 多条件查询
@@ -231,13 +226,12 @@ $userList = UserModel::all($query);
 ```php
 <?php
 //SELECT * FROM `user` WHERE `id`=1 AND `is_on`=1
-$query = UserModel::find()
+$user = UserModel::find()
     ->where([
         'id'    => 1,
         'is_on' => 1
-    ]);
-
-$user = UserModel::one($query);
+    ])
+    ->one();
 ```
 
 > `GROUP BY`查询
@@ -245,13 +239,12 @@ $user = UserModel::one($query);
 ```php
 <?php
 //SELECT COUNT(`is_on`) AS `count`,`is_on` FROM `user` GROUP BY `is_on` LIMIT 1000
-$query = UserModel::find()
+$list = UserModel::find()
     ->select('COUNT(`is_on`) AS `count`,`is_on`')
     ->group([
         'is_on', //可以接多个
-    ]);
-
-$user = UserModel::all($query);
+    ])
+    ->all();
 ```
 
 > `ORDER BY`查询
@@ -259,16 +252,15 @@ $user = UserModel::all($query);
 ```php
 <?php
 //SELECT 'id', 'true_name' FROM `user` ORDER BY `id` DESC LIMIT 1000
-$query = UserModel::find()
+$userList = UserModel::find()
     ->select([
        'id', 'true_name' 
     ])
     ->order([
         'id'    => SORT_DESC, 
         'is_on' => SORT_ASC,
-    ]);
-
-$user = UserModel::all($query);
+    ])
+    ->all();
 ```
 
 > 分页查询
@@ -276,11 +268,10 @@ $user = UserModel::all($query);
 ```php
 <?php
 //SELECT * FROM `user` LIMIT 0,10
-$query = UserModel::find()
+$userList = UserModel::find()
     ->offset(0)
-    ->limit(10);
-
-$user = UserModel::all($query);
+    ->limit(10)
+    ->all();
 ```
 
 * 更新操作
@@ -306,13 +297,13 @@ $rows = UserModel::deleteAll(['id' => 4]);
 ```php
 <?php
 $success = UserModel::getDb()->transaction(function (\roach\orm\Connection $connection){
-    $query = UserModel::find()
+    $user = UserModel::find()
                 ->where([
                     'id'    => 1,
                     'is_on' => 1
-                ]);
-    //这里最好用主库查询
-    $user = UserModel::one($query, true);
+                ])
+                //事务要都用主库查询
+                ->one($connection, true);
     if(!isset($user['id'])) {
         //返回false会自动回滚事务
         return false;
@@ -341,13 +332,12 @@ exit('事务提交成功'.PHP_EOL);
 ```php
 <?php
 //SELECT * FROM `user` WHERE `id`=1 AND `is_on`=1
-$query = UserModel::find()
+$user = UserModel::find()
     ->where([
         'id'    => 1,
         'is_on' => 1
-    ]);
-//主库查询
-$user = UserModel::one($query, true);
+    ])
+    ->one(null, true);
 ```
 
 * 所有写操作都是走的主库
