@@ -515,7 +515,7 @@ class TradeModel extends \roach\orm\Model
                 function(\roach\events\EventObject $event){
                     //。。。打日志报警等各种处理，该事件触发了，并不一定所有的节点都不能用了
                     //exception中是异常信息，config是节点配置
-                    var_dump($event->data['exception'], $event['config']);
+                    var_dump($event->data['exception'], $event->data['config']);
                 }
             ]
         ],
