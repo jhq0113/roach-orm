@@ -22,12 +22,12 @@ composer require jhq0113/roach-orm
     //
     'masters' => [
         [
-            'dsn'      => 'mysql:host=192.168.1.14;port=3306;dbname=roach;charset=utf-8',
+            'dsn'      => 'mysql:host=192.168.1.14;port=3306;dbname=roach;charset=utf8',
             'username' => 'roach', 
             'password' => 'roach',   
         ],
         [
-            'dsn'      => 'mysql:host=192.168.1.13;port=3306;dbname=roach;charset=utf-8',
+            'dsn'      => 'mysql:host=192.168.1.13;port=3306;dbname=roach;charset=utf8',
             'username' => 'roach', 
             'password' => 'roach',
             //可以通过options指定配置属性
@@ -39,7 +39,7 @@ composer require jhq0113/roach-orm
     //如果没有slave节点，可以不配置，会自动复用master节点
     'slaves' => [
         [
-           'dsn'      => 'mysql:host=192.168.1.15;port=3306;dbname=roach;charset=utf-8',
+           'dsn'      => 'mysql:host=192.168.1.15;port=3306;dbname=roach;charset=utf8',
            'username' => 'roach', 
            'password' => 'roach',  
            'options'  => [
@@ -47,7 +47,7 @@ composer require jhq0113/roach-orm
            ] 
         ],
         [
-           'dsn'      => 'mysql:host=192.168.1.16;port=3306;dbname=roach;charset=utf-8',
+           'dsn'      => 'mysql:host=192.168.1.16;port=3306;dbname=roach;charset=utf8',
            'username' => 'roach', 
            'password' => 'roach', 
            'options'  => [
@@ -375,12 +375,12 @@ $rows = UserModel::getDb()->execute('UPDATE `user` SET `true_name`=? WHERE id=1 
     //
     'masters' => [
         [
-            'dsn'      => 'mysql:host=192.168.1.14;port=3306;dbname=roach;charset=utf-8',
+            'dsn'      => 'mysql:host=192.168.1.14;port=3306;dbname=roach;charset=utf8',
             'username' => 'roach', 
             'password' => 'roach',   
         ],
         [
-            'dsn'      => 'mysql:host=192.168.1.13;port=3306;dbname=roach;charset=utf-8',
+            'dsn'      => 'mysql:host=192.168.1.13;port=3306;dbname=roach;charset=utf8',
             'username' => 'roach', 
             'password' => 'roach',
             //可以通过options指定配置属性
@@ -392,7 +392,7 @@ $rows = UserModel::getDb()->execute('UPDATE `user` SET `true_name`=? WHERE id=1 
     //如果没有slave节点，可以不配置，会自动复用master节点
     'slaves' => [
         [
-           'dsn'      => 'mysql:host=192.168.1.15;port=3306;dbname=roach;charset=utf-8',
+           'dsn'      => 'mysql:host=192.168.1.15;port=3306;dbname=roach;charset=utf8',
            'username' => 'roach', 
            'password' => 'roach',  
            'options'  => [
@@ -400,7 +400,7 @@ $rows = UserModel::getDb()->execute('UPDATE `user` SET `true_name`=? WHERE id=1 
            ] 
         ],
         [
-           'dsn'      => 'mysql:host=192.168.1.16;port=3306;dbname=roach;charset=utf-8',
+           'dsn'      => 'mysql:host=192.168.1.16;port=3306;dbname=roach;charset=utf8',
            'username' => 'roach', 
            'password' => 'roach', 
            'options'  => [
@@ -474,12 +474,12 @@ class TradeModel extends \roach\orm\Model
     //
     'masters' => [
         [
-            'dsn'      => 'mysql:host=192.168.1.14;port=3306;dbname=roach;charset=utf-8',
+            'dsn'      => 'mysql:host=192.168.1.14;port=3306;dbname=roach;charset=utf8',
             'username' => 'roach', 
             'password' => 'roach',   
         ],
         [
-            'dsn'      => 'mysql:host=192.168.1.13;port=3306;dbname=roach;charset=utf-8',
+            'dsn'      => 'mysql:host=192.168.1.13;port=3306;dbname=roach;charset=utf8',
             'username' => 'roach', 
             'password' => 'roach',
             //可以通过options指定配置属性
@@ -491,7 +491,7 @@ class TradeModel extends \roach\orm\Model
     //如果没有slave节点，可以不配置，会自动复用master节点
     'slaves' => [
         [
-           'dsn'      => 'mysql:host=192.168.1.15;port=3306;dbname=roach;charset=utf-8',
+           'dsn'      => 'mysql:host=192.168.1.15;port=3306;dbname=roach;charset=utf8',
            'username' => 'roach', 
            'password' => 'roach',  
            'options'  => [
@@ -499,7 +499,7 @@ class TradeModel extends \roach\orm\Model
            ] 
         ],
         [
-           'dsn'      => 'mysql:host=192.168.1.16;port=3306;dbname=roach;charset=utf-8',
+           'dsn'      => 'mysql:host=192.168.1.16;port=3306;dbname=roach;charset=utf8',
            'username' => 'roach', 
            'password' => 'roach', 
            'options'  => [
@@ -562,7 +562,7 @@ $db = \roach\Container::get('db');
 $db->on(\roach\orm\Connection::EVENT_EXCEPTION_CONNECT, function(\roach\events\EventObject $event){
     //。。。打日志报警等各种处理，该事件触发了，并不一定所有的节点都不能用了
     //exception中是异常信息，config是节点配置
-    var_dump($event->data['exception'], $event['config']);
+    var_dump($event->data['exception'], $event->data['config']);
 });
 
 $db->on(\roach\orm\Connection::EVENT_EXCEPTION_CONNECT_LOST, function (\roach\events\EventObject $event){

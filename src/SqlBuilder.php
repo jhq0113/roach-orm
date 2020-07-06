@@ -318,7 +318,7 @@ abstract class SqlBuilder extends Roach
      * @param bool $useMaster
      * @return array
      * @throws exceptions\Exception
-     * @datetime 2020/7/6 1:57 下午
+     * @datetime 2020/7/6 2:23 下午
      * @author   roach
      * @email    jhq0113@163.com
      */
