@@ -56,7 +56,7 @@ class Model extends Roach
     }
 
     /**
-     * @return object
+     * @return SqlBuilder
      * @throws \ReflectionException
      * @datetime 2020/7/6 1:58 下午
      * @author   roach
