@@ -2,6 +2,10 @@
 
 > `roach-orm`是一个简单高性能的PHP语言`ORM`框架，支持数据库的`负载均衡`、`预防SQL注入`、`故障自动摘除`、`自动恢复`以及`读写分离`等强大功能，整个代码文件不到`20K`。
 
+# 我的官方网站
+
+[https://404.360tryst.com/](https://404.360tryst.com/)
+
 # 安装方式
 ```bash
 composer require jhq0113/roach-orm
