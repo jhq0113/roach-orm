@@ -13,11 +13,7 @@ composer require jhq0113/roach-orm
 
 ## 我的主页
 
-![image](/51cto-yafr.png)
-
-![image](/blob/master/me.png)
-
-![image](/blob/master/public.jpg)
+![image](/51cto-yafr.png) ![image](/me.png) ![image](/public.jpg)
 
 ## 1.使用`Model`
 
