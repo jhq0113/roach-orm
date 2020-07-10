@@ -11,6 +11,14 @@
 composer require jhq0113/roach-orm
 ```
 
+## 我的主页
+
+![image](/raw/master/51cto-yafr.png)
+
+![image](/raw/master/me.png)
+
+![image](/raw/master/public.jpg)
+
 ## 1.使用`Model`
 
 ### 1.1 配置`db`
