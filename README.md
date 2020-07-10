@@ -11,18 +11,6 @@
 composer require jhq0113/roach-orm
 ```
 
-## 我的主页
-
-![image](/51cto-yafr.png) 
-
-![image](/me.png) 
-
-# 公众号
-
-![image](/public.jpg)
-
-![image](/qq.png)
-
 ## 1.使用`Model`
 
 ### 1.1 配置`db`
@@ -597,4 +585,16 @@ $db->on(\roach\orm\Connection::EVENT_AFTER_QUERY, function (\roach\events\EventO
     var_dump($event->data['stmt'], $event->data['sql'], $event->data['params']);
 });
 ```
+
+## 我的主页
+
+![image](/51cto-yafr.png) 
+
+![image](/me.png) 
+
+# 公众号
+
+![image](/public.jpg)
+
+![image](/qq.png)
 
