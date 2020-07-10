@@ -13,7 +13,7 @@ composer require jhq0113/roach-orm
 
 ## 我的主页
 
-![image](/blob/master/51cto-yafr.png)
+![image](/51cto-yafr.png)
 
 ![image](/blob/master/me.png)
 
