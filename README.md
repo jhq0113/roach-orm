@@ -21,6 +21,8 @@ composer require jhq0113/roach-orm
 
 ![image](/public.jpg)
 
+![image](/qq.png)
+
 ## 1.使用`Model`
 
 ### 1.1 配置`db`
