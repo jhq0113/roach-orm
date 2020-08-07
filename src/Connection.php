@@ -353,17 +353,20 @@ class Connection extends Roach
      */
     public function transaction(callable $handler)
     {
-        $result = $this->begin();
-        if(!$result) {
-            return false;
-        }
+        try {
+            $result = $this->begin();
+            if(!$result) {
+                return false;
+            }
 
-        $result = call_user_func($handler, $this);
-        if($result) {
-           return $this->commit();
+            $result = call_user_func($handler, $this);
+            if($result) {
+                return $this->commit();
+            }
+            $this->rollback();
+        }catch (\Exception $exception) {
+            $this->rollback();
         }
-
-        $this->rollback();
         return false;
     }
 }

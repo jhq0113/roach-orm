@@ -298,6 +298,46 @@ $rows = UserModel::deleteAll(['id' => 4]);
 
 * 使用事务
 
+> 不支持跨库事务
+
+> 普通方式
+
+```php
+<?php
+$db =  UserModel::getDb();
+
+try {
+   $db->begin();
+   $user = UserModel::find()
+       ->where([
+           'id'    => 1,
+           'is_on' => 1
+       ])
+       //事务要都用主库查询
+       ->one(true);
+   if(!isset($user['id'])) {
+       //返回false会自动回滚事务
+       return false;
+   }
+   
+   //.....其他操作
+   
+   $rows = $db->execute('UPDATE `user` SET `true_name`=? WHERE id=1 AND version=?', [
+       'zheng boss', $user['version']
+   ]);
+   
+   //如果受影响函数是1，返回true，返回true会自动提交事务
+   if($rows === 1) {
+        $db->commit();
+   }
+   $db->rollback();
+}catch (\Exception $exception) {
+    $db->rollback();
+}
+```
+
+> 闭包方式
+
 ```php
 <?php
 $success = UserModel::getDb()->transaction(function (\roach\orm\Connection $connection){
